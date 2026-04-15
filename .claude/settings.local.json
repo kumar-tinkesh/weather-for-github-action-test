@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test:*)",
+      "Bash(grep:*)",
+      "Bash(xargs ls:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(for f in docs/features/backoffice/*.md docs/features/pos/*.md docs/features/apis/*.md docs/features/landing-pages.md docs/features/platform-infrastructure.md)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//Users/jai/Workspace/apps/active/skutally_proj/skutally/**)",
+      "Bash(done)",
+      "Bash(chmod +x:*)",
+      "Bash(echo:*)",
+      "Bash(/tmp/count_doc_columns.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(wc:*)",
+      "Bash(for f in docs/features/backoffice/*.md docs/features/pos/*.md docs/features/apis/*.md docs/features/*.md)",
+      "Bash(git log:*)",
+      "Bash(gh pr:*)",
+      "Bash(brew list:*)",
+      "Bash(ruby:*)",
+      "Bash(gh run:*)",
+      "Bash(gh auth:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.mintlify.com)",
+      "WebFetch(domain:mintlify.com)",
+      "Bash(curl:*)",
+      "WebSearch",
+      "Bash(python3:*)",
+      "Bash(git mv:*)",
+      "Bash(gh api:*)",
+      "Bash(bundle exec:*)",
+      "Bash(bundle list:*)",
+      "Bash(find /Users/jai/Workspace/apps/active/skutally_proj/skutally -name \"*layout*.rb\" -path \"*/components/*\" -o -name \"*Layout*.rb\" -path \"*/components/*\" 2>/dev/null | head -5)",
+      "Bash(__NEW_LINE_3393df764f5a3729__ echo:*)"
+    ]
+  }
+}

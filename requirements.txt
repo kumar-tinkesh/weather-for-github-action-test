@@ -1,0 +1,4 @@
+# No external dependencies required!
+# This script uses only Python standard library modules.
+#
+# Python 3.7+ recommended
