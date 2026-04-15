@@ -1,85 +1,86 @@
-# [Feature Name]
+# Weather Checker CLI
 
-> A comprehensive guide to [Feature Name] in Skutally.
+> Get current weather and 3-day forecasts for any city — no API key required.
 
 ---
 
-## What is [Feature Name]?
+## What is Weather Checker?
 
-[2-3 sentences in plain language explaining what this feature does and why it matters. No technical jargon — write as if explaining to a business user who has never seen the code.]
+Weather Checker is a simple command-line tool that fetches current weather conditions and forecasts for any city worldwide. Just type a city name and get instant weather information including temperature, humidity, wind speed, and a 3-day forecast.
 
 ---
 
 ## Key Capabilities
 
-- [Capability 1 — what users can do]
-- [Capability 2]
-- [Capability 3]
-- [Capability 4]
+- **Current Weather** — See the current temperature, conditions, humidity, and wind speed
+- **3-Day Forecast** — Plan ahead with a multi-day weather outlook
+- **Global Coverage** — Works with any city name worldwide
+- **No Setup Required** — No API keys, no accounts, just run and go
+- **Dual Temperature Display** — Shows both Celsius and Fahrenheit
 
 ---
 
 ## How It Works
 
-[Plain-English explanation of the feature's workflow. Describe the stages, states, or steps a user goes through. Use simple numbered lists or bullet points. No code, no Mermaid diagrams, no database terms.]
+1. **Enter a City Name** — Type the name of any city
+2. **Fetch Data** — The tool connects to free weather APIs
+3. **View Results** — See current conditions and forecast with clear, emoji-enhanced formatting
 
-Example format:
-1. **Step/Stage 1** — What happens and why
-2. **Step/Stage 2** — What happens next
-3. **Step/Stage 3** — How it concludes
-
-If the feature has a state machine or lifecycle, describe the stages in business terms:
-> Orders move through stages: **Draft** → **Submitted** → **Approved** → **Shipped** → **Completed**
+The weather data comes from reliable public weather services:
+- **wttr.in** — Primary data source for current conditions and forecast
+- **Open-Meteo** — Secondary source with additional weather details
 
 ---
 
 ## Common Questions
 
-**Q: [Most frequently asked question about this feature]?**
-A: [Clear, concise answer]
+**Q: Do I need an API key to use Weather Checker?**
+A: No. The tool uses free, public weather APIs that don't require registration or API keys.
 
-**Q: [Second most common question]?**
-A: [Answer]
+**Q: What cities are supported?**
+A: Any city name worldwide should work. Try major cities first if you're unsure of the exact spelling.
 
-**Q: [Third question]?**
-A: [Answer]
+**Q: Can I check the weather for multiple cities at once?**
+A: Currently, the tool displays weather for one city at a time. Run it again for additional cities.
 
-**Q: [Fourth question]?**
-A: [Answer]
+**Q: How current is the weather data?**
+A: The data is fetched in real-time when you run the command, so it's always up-to-date.
 
-**Q: [Fifth question]?**
-A: [Answer]
+**Q: What weather information do I get?**
+A: You receive: current temperature (°C and °F), weather conditions (sunny, cloudy, rain, etc.), humidity percentage, wind speed, and a 3-day temperature forecast.
 
-[Include 5-10 Q&A pairs covering the most common customer questions. Derive these from:
-- Feature capabilities and limitations
-- Common workflows and edge cases
-- Permission requirements (in plain language, not policy method names)
-- Integration points with other features]
+**Q: Does it work offline?**
+A: No, an internet connection is required to fetch weather data from the APIs.
+
+**Q: Can I use this commercially?**
+A: Yes, the tool is open source under the MIT license.
+
+**Q: What if my city isn't found?**
+A: Try the English name of the city, or use a nearby major city. The APIs recognize most common city names.
 
 ---
 
 ## Tips & Best Practices
 
-- [Practical tip 1 — derived from how the feature actually works in code]
-- [Practical tip 2]
-- [Practical tip 3]
-- [Practical tip 4]
+- **Use quotes for multi-word cities** — When typing city names with spaces like "New York", use quotes
+- **Check nearby cities** — If your small town isn't found, try the nearest major city
+- **Run regularly** — Weather changes frequently, so check before planning outdoor activities
+- **Temperature in both scales** — The display shows both Celsius and Fahrenheit for convenience
 
 ---
 
 ## Limitations & Important Notes
 
-- [Limitation 1 — things users should know about what the feature cannot do]
-- [Limitation 2]
-- [Important note about behavior that might be unexpected]
+- Requires an active internet connection
+- Limited to 3-day forecast (not extended forecasts)
+- Depends on third-party API availability
+- No historical weather data
 
 ---
 
 ## Related Features
 
-- **[Related Feature 1]** — [One sentence explaining the relationship]
-- **[Related Feature 2]** — [One sentence explaining the relationship]
-- **[Related Feature 3]** — [One sentence explaining the relationship]
+- None (standalone CLI tool)
 
 ---
 
@@ -87,17 +88,15 @@ A: [Answer]
 
 ### What to include:
 - Customer-visible behavior only
-- Business logic explanations
-- Plain-language permission descriptions ("You need permission to manage orders")
-- Feature interactions described from the user's perspective
-- Flash messages and UI feedback (paraphrased, not quoted from code)
+- What users can see and do
+- Plain-language explanations
+- Actual output format description
 
 ### What to NEVER include:
 - Code snippets of any kind
-- Database column names or schema details
-- Model names, controller names, or file paths
-- Mermaid diagrams or technical architecture
-- Internal method names or class names
-- Pundit policy method names
-- Background job or worker details
-- Configuration file paths or environment variables
+- File paths or Python module names
+- API endpoint URLs (just mention "free APIs")
+- Technical implementation details
+- Function or method names
+- Dependencies or library names
+- Error stack traces

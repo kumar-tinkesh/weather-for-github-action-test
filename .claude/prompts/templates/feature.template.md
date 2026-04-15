@@ -1,46 +1,39 @@
 # [Feature Name]
 
-> **Status**: ✅ Active | ⚠️ Beta | ⚠️ Planned / Routes Only | 🚫 Deprecated
+> **Status**: ✅ Active | ⚠️ Beta | 🚫 Deprecated
 > **Generated**: [YYYY-MM-DDTHH:MM:SSZ]
 > **Last Updated**: [YYYY-MM-DDTHH:MM:SSZ]
-> **Skutally Version:** Rails 8.1.0 / Ruby 4.0.1
+> **Python Version:** [e.g., 3.7+]
 
 ---
 
 ## Feature Documentation Standards
 
 ### Purpose
-Feature documentation is FOR human developers and users. It provides:
+Feature documentation is FOR developers. It provides:
 - Clear understanding of what the feature does
-- How to use the feature
 - Technical implementation details
+- Code examples and API usage
 - Configuration requirements
 - Troubleshooting guidance
 
 ### Content Requirements
 
-#### Must Include (use template):
+#### Must Include:
 1. **Overview**: What the feature does, why it exists
-2. **Architecture**: How it's built (with diagrams for complex features)
-3. **Model Details**: Associations, concerns, callbacks, state machines — ALL of them
-4. **API Endpoints**: All endpoints verified against routes AND controller actions
-5. **Database Schema**: Tables from `db/schema.rb` — ALL columns, not a subset
-6. **Configuration**: Environment variables, settings
-7. **Usage Examples**: Verbatim code from the codebase (never simplified)
-8. **Authorization**: ALL policy methods, not just the main ones
-9. **Testing**: Test files, coverage, key test cases
-10. **Known Issues / Caveats**: Dead code, no-ops, bugs, hardcoded values
-11. **Troubleshooting**: Common issues and solutions
-12. **Related Features**: Links to related documentation
+2. **Architecture**: Function breakdown and data flow
+3. **API Sources**: External APIs used (endpoints, responses)
+4. **Configuration**: Dependencies, Python version
+5. **Usage Examples**: Verbatim code from the codebase
+6. **Error Handling**: How errors are caught and displayed
+7. **Known Issues / Limitations**: Any caveats
+8. **Related Features**: Links to related documentation
 
-### Critical Rules — What NOT To Do
-- **NEVER simplify code snippets** — copy verbatim from source, or don't include them
+### Critical Rules
+- **NEVER simplify code snippets** — copy verbatim from source
 - **NEVER fabricate method names** — if you can't find it, don't document it
-- **NEVER list a route without verifying the controller action exists**
-- **NEVER omit model concerns** — list ALL `include` statements (Assignable, Trackable, Payable, Shippable, Contactable, etc.)
-- **NEVER mark a feature "Active" unless controller + views + routes all exist**
-- **NEVER omit `dependent:` options on associations** — they affect destroy behavior
-- **NEVER list partial schema columns** — read `db/schema.rb` and list ALL columns for each table
+- **Document ALL functions** — not just the main entry point
+- **Include actual API endpoints** used in the code
 
 ---
 
@@ -61,200 +54,154 @@ Feature documentation is FOR human developers and users. It provides:
 
 ## Architecture
 
-### High-Level Design
-```mermaid
-graph TD
-    A[User/Client] --> B[Frontend Component]
-    B --> C[API Endpoint]
-    C --> D[Service Layer]
-    D --> E[Database]
-    D --> F[External Service]
+### Function Breakdown
+
+| Function | Purpose | Key Logic |
+|----------|---------|-----------|
+| `function_name()` | [What it does] | [Key implementation details] |
+
+### Data Flow
+```
+[Input] → [Function 1] → [Function 2] → [Output/API]
 ```
 
 ### Components
 
-#### Backend Components
-| Component | File Path | Purpose |
-|-----------|-----------|---------|
-| [Component Name] | `app/path/to/file.rb` | [Purpose] |
+#### Core Functions
+| Function | File | Purpose |
+|----------|------|---------|
+| `main()` | `weather.py` | Entry point, handles CLI args |
+| `get_weather_wttr()` | `weather.py` | Fetches from wttr.in API |
+| `format_weather_wttr()` | `weather.py` | Formats output with emojis |
 
-> **Checklist**: Have you included ALL of these?
-> - [ ] Controllers (including nested/namespaced)
-> - [ ] Models (including STI subclasses)
-> - [ ] Model concerns (`include` statements — Assignable, Trackable, Payable, Shippable, Contactable, Receivable, etc.)
-> - [ ] Services (`app/services/`)
-> - [ ] Workers/Jobs (`lib/workers/`)
-> - [ ] Policies (`app/policies/`)
-> - [ ] Search classes (`app/searches/`)
-> - [ ] Broadcasters (`app/broadcasters/`)
-> - [ ] ViewComponents (`app/components/`)
-> - [ ] Form objects (`app/models/*_form.rb`)
-> - [ ] Liquid drops (`app/drops/`)
-
-#### Frontend Components
-| Component | File Path | Purpose |
-|-----------|-----------|---------|
-| [Component Name] | `app/javascript/path/to/file.js` | [Purpose] |
-
-### Technology Stack
-- **Backend**: [Extracted from code]
-- **Frontend**: [Extracted from code]
-- **Database**: [Extracted from models]
-- **External Services**: [If any]
+#### External Dependencies
+| Dependency | Purpose | Source |
+|------------|---------|--------|
+| `urllib` | HTTP requests | Python standard library |
+| `json` | JSON parsing | Python standard library |
 
 ---
 
-## Model Details
+## API Sources
 
-### [ModelName]
+### Primary: wttr.in
 
-#### Associations
-List ALL associations with their options:
-```ruby
-# Copy verbatim from model file — include dependent:, optional:, class_name:, etc.
-belongs_to :account
-has_many :line_items, dependent: :destroy
-has_one :balance_ledger, dependent: :destroy
+**Endpoint:** `https://wttr.in/{location}?format=j1`
+
+**Response Structure:**
+```json
+{
+  "current_condition": [...],
+  "weather": [...]
+}
 ```
 
-#### Concerns
-List ALL included concerns and what they provide:
-| Concern | Purpose |
-|---------|---------|
-| `Assignable` | Adds `assign!`, `unassign!`, assignee delegation |
-| `Trackable` | Adds activity tracking via PublicActivity |
+**Fields Used:**
+| Field | Description |
+|-------|-------------|
+| `temp_C` | Temperature in Celsius |
+| `temp_F` | Temperature in Fahrenheit |
+| `weatherDesc` | Weather condition description |
+| `humidity` | Humidity percentage |
+| `windspeedKmph` | Wind speed in km/h |
 
-#### Callbacks
-List ALL callbacks in execution order:
-| Callback | Method | Purpose |
-|----------|--------|---------|
-| `before_validation` | `:method_name` | [What it does] |
-| `before_save` | `:method_name` | [What it does] |
-| `after_create_commit` | `:method_name` | [What it does] |
+### Secondary: Open-Meteo
 
-#### State Machines (if applicable)
-```ruby
-# Copy AASM/state_machine definition verbatim
-# Note any transitions WITHOUT `from:` constraints
-# Note if policy restricts transitions beyond what AASM allows
-```
+**Endpoint:** `https://api.open-meteo.com/v1/forecast`
 
-#### Key Methods
-| Method | Returns | Purpose | Notes |
-|--------|---------|---------|-------|
-| `method_name` | `Type` | [Purpose] | [e.g., "always returns false (no-op)"] |
+**Parameters:**
+- `latitude`, `longitude`
+- `current` — temperature, humidity, weather_code, wind_speed
+- `daily` — temperature max/min
 
----
-
-## Database Schema
-
-### [table_name]
-
-> **IMPORTANT**: Read `db/schema.rb` and list ALL columns. Do not cherry-pick.
-
-| Column | Type | Default | Notes |
-|--------|------|---------|-------|
-| `id` | `uuid` | `gen_random_uuid()` | Primary key |
-| [ALL columns from db/schema.rb] | | | |
-
-### Relationships
-```mermaid
-erDiagram
-    TABLE1 ||--o{ TABLE2 : "has many (dependent: destroy)"
-    TABLE2 ||--|| TABLE3 : "belongs_to"
-```
-
----
-
-## API Endpoints
-
-> **IMPORTANT**: For every route listed, verify the controller action method EXISTS.
-> If a route exists but the controller action does not, mark it as "⚠️ Route only — no action".
-
-| Method | Path | Action | Description | Notes |
-|--------|------|--------|-------------|-------|
-| `GET` | `/resource` | `index` | List resources | |
-| `POST` | `/resource` | `create` | Create resource | |
-
----
-
-## Authorization (Pundit)
-
-> **IMPORTANT**: List ALL policy methods, not just the obvious CRUD ones.
-
-| Method | Permission | Conditions | Notes |
-|--------|------------|------------|-------|
-| `index?` | `feature_view` | — | |
-| `create?` | `feature_manage` | — | |
-| `update?` | `feature_manage` | Not cancelled | |
-| `destroy?` | `feature_manage` | Delegates to `update?` | Note delegation chains |
+**WMO Weather Codes:**
+| Code | Description |
+|------|-------------|
+| 0 | Clear sky |
+| 1-3 | Cloudy (increasing) |
+| 45, 48 | Foggy |
+| 51-55 | Drizzle |
+| 61-65 | Rain |
+| 71-75 | Snow |
+| 95-99 | Thunderstorm |
 
 ---
 
 ## Configuration
 
-### Environment Variables
-```bash
-FEATURE_API_KEY=your-key-here          # Purpose: [Explain]
+### Python Version
+- **Required**: Python 3.7+
+- **Tested on**: [version]
+
+### Dependencies
+```
+# No external dependencies required
+# Uses only Python standard library
 ```
 
-### Config Files
-- `config/feature.yml` - [Purpose]
+### System Requirements
+- Internet connection
+- Access to wttr.in and Open-Meteo APIs
 
 ---
 
 ## Usage Examples
 
-> **CRITICAL**: Code snippets MUST be verbatim copies from the codebase.
-> Never simplify, summarize, or paraphrase code. If a method is too long to include
-> in full, show the complete method signature and key lines with `# ...` for omitted
-> sections, but NEVER change the logic or remove conditional branches.
+> **CRITICAL**: Code snippets MUST be verbatim copies from weather.py.
 
-### [Use Case 1]
-```ruby
-# Source: app/path/to/file.rb:LINE_NUMBER
-# Copy the actual code here — verbatim
+### Basic Usage
+```python
+# Source: weather.py:131
+
+def main():
+    if len(sys.argv) < 2:
+        location = input("Enter location (city name): ").strip()
+        if not location:
+            print("Please provide a location.")
+            print("Usage: python weather.py <location>")
+            sys.exit(1)
+    else:
+        location = " ".join(sys.argv[1:])
+```
+
+### Fetching Weather Data
+```python
+# Source: weather.py:11
+
+def get_weather_wttr(location):
+    """Get weather from wttr.in (no API key required)."""
+    try:
+        encoded_location = urllib.parse.quote(location)
+        url = f"https://wttr.in/{encoded_location}?format=j1"
+
+        req = urllib.request.Request(url, headers={"User-Agent": "curl/7.68.0"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            return data
+    except Exception as e:
+        print(f"Error fetching weather: {e}")
+        return None
 ```
 
 ---
 
-## Testing
+## Error Handling
 
-### Test Files
-- `spec/models/model_spec.rb`
-- `spec/controllers/controller_spec.rb`
-
-> Only list test files that actually exist. Verify with glob.
+| Error Type | Handling | User Message |
+|------------|----------|--------------|
+| Network error | try/except with timeout | "Error fetching weather: {e}" |
+| Invalid location | Returns None | "Could not fetch weather data." |
+| No location provided | Input validation | "Please provide a location." |
 
 ---
 
-## Known Issues & Caveats
-
-> This section captures dead code, no-ops, potential bugs, hardcoded values, and
-> other gotchas discovered during documentation. These are NOT bugs to fix — they
-> are things developers should be aware of.
+## Known Issues & Limitations
 
 | Issue | Location | Description |
 |-------|----------|-------------|
-| No-op method | `policy.rb:27` | `requires_upgrade?` always returns `false` |
-| Hardcoded value | `service.rb:15` | Demo account bypass: `demo@skutally.com` / `123456` |
-| Commented-out code | `calculator.rb:11` | TaxJar API call is commented out |
-| Missing DB column | `model.rb:5` | `belongs_to :closer` declared but `closer_id` column missing from schema |
-| Route without action | `routes.rb:464` | `get :select_contact` defined but no controller action exists |
-
----
-
-## Performance
-
-### Optimization Strategies
-- [Strategy 1 implemented in code]
-
-### Caching
-- **Cache Layer**: [Redis/Memory/etc.]
-- **TTL**: [Time to live]
-
-### Database Optimization
-- Indexes: [List indexes from schema]
+| API dependency | External | Relies on wttr.in availability |
+| No caching | weather.py | Fetches fresh data every time |
+| Limited forecast | Output | Only shows 3-day forecast |
 
 ---
 
@@ -262,27 +209,29 @@ FEATURE_API_KEY=your-key-here          # Purpose: [Explain]
 
 ### Common Issues
 
-#### Issue: [Problem Description]
-**Symptoms:**
-- [Symptom 1]
-
-**Cause:**
-[Root cause explanation]
-
+#### Issue: "Could not fetch weather data."
+**Cause:** Network issue or API unavailable
 **Solution:**
-```ruby
-# Code fix or configuration change
-```
+1. Check internet connection
+2. Verify wttr.in is accessible
+3. Try again in a few minutes
+
+#### Issue: Location not found
+**Cause:** Invalid city name or API can't geocode
+**Solution:**
+1. Use the English name of the city
+2. Try a nearby major city
+3. Check spelling
 
 ---
 
 ## Related Features
 
-- **[Feature Name](../namespace/related-feature.md)** - [How it relates]
+- None (single-feature CLI)
 
 ---
 
 **Generated:** [YYYY-MM-DDTHH:MM:SSZ]
 **Last Updated:** [YYYY-MM-DDTHH:MM:SSZ]
-**Skutally Version:** Rails 8.1.0 / Ruby 4.0.1
+**Python Version:** 3.7+
 **Status:** ✅ Active

@@ -1,137 +1,178 @@
-# [Feature Name] — User Manual
+# Weather Checker CLI — User Manual
 
-> Step-by-step instructions for using [Feature Name] in Skutally.
+> Step-by-step instructions for checking weather from the command line.
 
 ---
 
 ## Prerequisites
 
-- [Permission or role needed — in plain language, e.g., "You need the 'Manage Sales Orders' permission"]
-- [Any setup required before using this feature]
-- [Related features that should be configured first]
+- **Python 3.7 or higher** installed on your system
+- **Internet connection** to fetch weather data
+- **No API key required** — the tool uses free public APIs
 
 ---
 
 ## Overview
 
-[1 paragraph summarizing what this guide covers and who it's for. E.g., "This guide walks back-office operators through creating, managing, and fulfilling sales orders."]
+This guide walks you through installing and using Weather Checker to get current weather conditions and 3-day forecasts for any city worldwide.
 
 ---
 
-## [Task 1: Primary Workflow]
+## Installation
 
-### Steps
+### Step 1: Download or Clone
 
-1. Navigate to **[Menu Path]** (e.g., **Orders > Sales Orders**)
-2. Click **[Button Label]** in the [position, e.g., "top right corner"]
-3. Fill in the required fields:
-   - **[Field Name]** — [What to enter and why]
-   - **[Field Name]** — [What to enter and why]
-   - **[Field Name]** — [Optional/Required, what it controls]
-4. Click **[Submit/Save Button Label]**
+Download the `weather.py` file or clone the repository:
+
+```bash
+git clone <repo-url>
+cd weather-checker
+```
+
+### Step 2: Verify Python Version
+
+Check that Python 3.7+ is installed:
+
+```bash
+python --version
+```
+
+You should see output like: `Python 3.9.0` or higher.
 
 ### Expected Result
 
-[What the user should see after completing the steps — e.g., "You'll be redirected to the order detail page showing the order in Draft status."]
+The `weather.py` file is now available in your directory and ready to use.
 
 ---
 
-## [Task 2: Secondary Workflow]
+## Checking Weather — Quick Method
 
 ### Steps
 
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
+1. Open your terminal or command prompt
+
+2. Navigate to the directory containing `weather.py`
+
+3. Run the command with a city name:
+   ```bash
+   python weather.py London
+   ```
 
 ### Expected Result
 
-[What happens]
+You'll see output like:
+```
+🌍 Weather for: London
+----------------------------------------
+🌡️  Temperature: 15°C / 59°F
+☁️  Condition: Partly cloudy
+💧 Humidity: 72%
+💨 Wind: 14 km/h
+----------------------------------------
+
+📅 3-Day Forecast:
+  2024-01-15: 8°C - 16°C, Partly cloudy
+  2024-01-16: 6°C - 14°C, Light rain
+  2024-01-17: 7°C - 15°C, Overcast
+```
 
 ---
 
-## [Task 3: Another Common Task]
+## Checking Weather — Interactive Method
 
 ### Steps
 
-1. [Step 1]
-2. [Step 2]
+1. Open your terminal
+
+2. Navigate to the weather-checker directory
+
+3. Run the command without arguments:
+   ```bash
+   python weather.py
+   ```
+
+4. When prompted, type a city name and press **Enter**:
+   ```
+   Enter location (city name): Tokyo
+   ```
 
 ### Expected Result
 
-[What happens]
+The weather information for Tokyo will display, showing current conditions and the 3-day forecast.
 
 ---
 
-## Variations
+## Working with Multi-Word City Names
 
-### [Variation 1 — e.g., "Creating an Order from a Quote"]
+### Steps
 
-[Brief explanation of when to use this variation]
+1. For cities with spaces in the name, use quotation marks:
+   ```bash
+   python weather.py "New York"
+   ```
 
-1. [Modified steps]
-2. [Steps that differ from the primary workflow]
+2. Or use the interactive method:
+   ```bash
+   python weather.py
+   Enter location (city name): New York
+   ```
 
-### [Variation 2 — e.g., "Bulk Operations"]
+### Expected Result
 
-[Steps for the variation]
-
----
-
-## Settings & Configuration
-
-### [Setting Category]
-
-Navigate to **Settings > [Section] > [Subsection]**
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| [Setting Name] | [What it controls] | [Default value] |
-| [Setting Name] | [What it controls] | [Default value] |
+Weather data for New York displays correctly.
 
 ---
 
 ## Troubleshooting
 
-### [Button/Action] is greyed out or disabled
+### "Could not fetch weather data."
 
-**Cause:** [Most common reason]
-**Solution:** [What to do]
+**Cause:** Network connection issue or API temporarily unavailable
+**Solution:**
+1. Check your internet connection
+2. Wait a minute and try again
+3. Verify the city name is spelled correctly
 
-### [Common error message or problem]
+### "Please provide a location."
 
-**Cause:** [Why this happens]
-**Solution:** [Step-by-step fix]
+**Cause:** Ran the command without specifying a city
+**Solution:**
+1. Add a city name to the command: `python weather.py London`
+2. Or use interactive mode and enter a city when prompted
 
-### [Another common issue]
+### "python" command not found
 
-**Cause:** [Why this happens]
-**Solution:** [What to do]
+**Cause:** Python is not installed or not in your system PATH
+**Solution:**
+1. Install Python 3.7+ from python.org
+2. On some systems, use `python3` instead of `python`: `python3 weather.py London`
+
+### City not found
+
+**Cause:** The API doesn't recognize the city name
+**Solution:**
+1. Try the English name of the city
+2. Use a nearby major city
+3. Check the spelling
 
 ---
 
 ## Content Rules (remove this section from generated docs)
 
-### How to extract UI details from code:
-1. **Button labels** — from ERB view templates (`app/views/`), look for `link_to`, `button_to`, `submit_tag` text
-2. **Menu/navigation paths** — from layout files and sidebar partials
-3. **Form fields** — from `_form.html.erb` partials, look for `f.input`, `f.text_field`, label text
-4. **Flash messages** — from controller actions, look for `flash[:notice]`, `flash[:alert]`
-5. **Tab names** — from view templates, look for tab/nav components
-6. **Permission names** — from Pundit policies, translate method names to plain language
-   (e.g., `manage_assignments?` → "Manage Assignments permission")
-7. **Status/state labels** — from AASM states, but use the display name not the code symbol
+### How to extract details from code:
+1. **Command syntax** — from the `main()` function in weather.py
+2. **Prompt text** — from the `input()` call
+3. **Error messages** — from `print()` statements
+4. **Output format** — from the format functions
 
 ### What to NEVER include:
-- Code snippets of any kind
-- Database details
-- File paths or class names
-- Technical architecture
-- Internal implementation details
+- Code snippets
+- File paths
+- Technical implementation details
+- Python module names
 
 ### Style guidelines:
-- Use **bold** for UI element names (buttons, menu items, field labels, tab names)
-- Use exact labels as they appear in the UI (extracted from ERB templates)
-- Write in second person ("You", "Your")
-- Keep steps atomic — one action per step
-- Include "Expected Result" after each task section
+- Use **bold** for commands, arguments, and UI elements
+- Write in second person ("You")
+- One action per step
+- Include "Expected Result" after each task

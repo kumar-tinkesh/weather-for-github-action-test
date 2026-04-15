@@ -1,68 +1,68 @@
 ---
-description: Generate a Knowledge Base doc for a specific feature. Usage: /generate-kb-doc <feature-name>
+description: Generate Knowledge Base doc for the weather CLI. Usage: /generate-kb-doc
 ---
 
-You are tasked with generating a customer-facing Knowledge Base document for a Skutally feature. KB docs explain features conceptually — what they do, business logic, capabilities, FAQs — without exposing any technical internals.
+You are tasked with generating a customer-facing Knowledge Base document for the Weather Checker CLI application.
 
-## Namespace Mapping
+## Project Structure
 
-| Namespace | KB Directory | Features |
-|-----------|-------------|----------|
-| Back-office | `docs/knowledge-base/backoffice/` | authentication, product-catalog, inventory-management, sales-orders, fulfillment, purchase-orders, customer-management, company-management, supplier-management, payment-processing, shipping, carts, reporting, user-account-management, account-settings, dynamic-search, printing, import-export, activity-collaboration, shopify-integration, integrations |
-| POS | `docs/knowledge-base/pos/` | authentication, terminals-setup, sessions-registers, cart-management, product-search, customers, payments, receipts-printing, fulfillment, realtime-hardware |
-| APIs | `docs/knowledge-base/apis/` | products, orders, customers, carts-checkout, inventory, catalog, infrastructure |
+This is a simple Python CLI tool:
+- `weather.py` — Single-file CLI application
+- Fetches weather data from free APIs (no API key required)
 
 ## Instructions
 
-1. **Read the feature catalog** at `docs/features/catalog.md` — find the entry for: `$ARGUMENTS`
+1. **Read the technical documentation** at `docs/technical/weather-cli.md` (or generate it first)
 
-2. **Read the corresponding technical doc** — this is your PRIMARY source:
-   - Backoffice: `docs/features/backoffice/<slug>.md`
-   - POS: `docs/features/pos/<slug>.md`
-   - APIs: `docs/features/apis/<slug>.md`
-   - Root: `docs/features/<slug>.md`
+2. **Read the KB template** at `.claude/prompts/templates/knowledge-base.template.md`
 
-3. **Read the KB template** at `.claude/prompts/templates/knowledge-base.template.md`
+3. **Read the source code** at `weather.py` to understand customer-visible behavior:
+   - What weather data is displayed (temperature, humidity, wind, forecast)
+   - What locations are supported
+   - What APIs are used
+   - How errors are handled
 
-4. **Selectively read code** for customer-visible behavior:
-   - ERB view templates — for UI states, labels, flash messages visible to users
-   - AASM state machines — for lifecycle stages (translate to plain language)
-   - Pundit policies — translate permission methods to plain-language descriptions
-   - Do NOT include any code in the output
+4. **Transform into customer-friendly documentation**:
+   - Replace technical terms with plain language
+   - Remove ALL code snippets, file paths, and implementation details
+   - Focus on what users can do and see
+   - Explain error messages in user-friendly terms
 
-5. **Transform the technical doc into KB format**:
-   - Replace all technical terms with business terms
-   - Remove ALL code snippets, schema details, file paths, class names
-   - Explain state machines as business workflows
-   - Translate permission names to plain language ("You need permission to manage orders")
-   - Focus on WHAT and WHY, not HOW (technically)
-   - Write FAQ questions that real customers would ask
-
-6. **Save the output** to the correct path:
-   - Backoffice: `docs/knowledge-base/backoffice/<slug>.md`
-   - POS: `docs/knowledge-base/pos/<slug>.md`
-   - APIs: `docs/knowledge-base/apis/<slug>.md`
+5. **Save the output** to `docs/knowledge-base/weather-cli.md`
    - Create the directory if it doesn't exist
 
-7. **Remove the "Content Rules" section** from the generated output — it's for your reference only
+## Content Guidelines
+
+### What to include:
+- What the weather CLI does (fetches current weather and forecast)
+- How to use it (command format)
+- What information it provides (temperature, conditions, humidity, wind, 3-day forecast)
+- Supported locations (any city name)
+- Requirements (Python 3.7+, internet connection)
+- FAQ section (5-10 common questions)
+
+### What to NEVER include:
+- Python code or syntax
+- Function names or file paths
+- API endpoint URLs
+- Technical implementation details
+- Error stack traces
+- Dependencies or library names
 
 ## Quality Standards
 
-- **Zero technical content** — no code, schema, file paths, model names, controller names
-- **Customer-friendly language** — explain as if talking to a non-technical business user
-- **Accurate business logic** — derived from actual code behavior, not assumptions
-- **Complete FAQ section** — minimum 5 Q&A pairs per feature
-- **Cross-references** — link to related KB docs using plain feature names
-- **No fabricated capabilities** — only document what the code actually supports
+- **Zero technical content** — no code, no file paths, no technical jargon
+- **Customer-friendly language** — explain as if talking to a non-technical user
+- **Complete FAQ section** — minimum 5 Q&A pairs
+- **Accurate information** — derived from actual code behavior
+- **Working examples** — command examples that actually work
 
 ## Common Mistakes to Avoid
 
-1. **Leaking technical terms** — writing "the AASM state machine transitions to shipped" instead of "the order moves to Shipped status"
-2. **Including code** — even pseudocode is not allowed
-3. **Using model names** — "SalesOrder" should be "sales order" or "order"
-4. **Mentioning file paths** — never reference `app/controllers/` etc.
-5. **Fabricating features** — don't describe capabilities that don't exist in the code
-6. **Skipping the FAQ** — this is the most valuable section for the AI chatbot
-7. **Being too vague** — "You can manage orders" is less useful than "You can create, edit, duplicate, void, and archive orders"
+1. **Including code** — even simple Python snippets should be removed
+2. **Technical URLs** — don't expose wttr.in API URLs to users
+3. **Library names** — don't mention urllib, json, etc.
+4. **File paths** — never reference `weather.py` or directory structure
+5. **Developer terms** — "function", "module", "import" should not appear
 
-Begin by reading the catalog and technical doc for this feature, then generate the KB document.
+Begin by reading the technical doc and source code, then generate the customer-facing KB document.

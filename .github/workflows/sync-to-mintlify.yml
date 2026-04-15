@@ -1,0 +1,158 @@
+name: Sync Documentation to Mintlify
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'docs/knowledge-base/**'
+      - 'docs/user-manuals/**'
+      - 'docs/api-docs/**'
+
+# Only one sync runs at a time
+concurrency:
+  group: docs-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-to-mintlify:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the main repo
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Get changed files
+      - name: Get changed documentation files
+        id: changed-files
+        run: |
+          # Get files changed in this push
+          if [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- docs/knowledge-base/ docs/user-manuals/ docs/api-docs/)
+          else
+            # If first commit, get all docs
+            CHANGED_FILES=$(find docs/knowledge-base docs/user-manuals docs/api-docs -type f -name "*.md" 2>/dev/null || true)
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Save to output
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGED_FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      # 3. Checkout the docs repo
+      - name: Checkout docs repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.DOCS_REPO }}
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: docs-repo
+
+      # 4. Sync files
+      - name: Sync documentation files
+        run: |
+          echo "Syncing documentation to Mintlify repo..."
+
+          # Create directories if they don't exist
+          mkdir -p docs-repo/guides
+          mkdir -p docs-repo/manuals
+          mkdir -p docs-repo/api-reference
+
+          # Sync knowledge base
+          if [ -d "docs/knowledge-base" ]; then
+            echo "Syncing Knowledge Base..."
+            for file in docs/knowledge-base/**/*.md; do
+              if [ -f "$file" ]; then
+                # Get relative path and convert to mdx
+                rel_path="${file#docs/knowledge-base/}"
+                target_file="${rel_path%.md}.mdx"
+                target_path="docs-repo/guides/$target_file"
+
+                # Create subdirectory if needed
+                mkdir -p "$(dirname "$target_path")"
+
+                # Copy and convert
+                cp "$file" "$target_path"
+                echo "  Synced: $file -> $target_path"
+              fi
+            done
+          fi
+
+          # Sync user manuals
+          if [ -d "docs/user-manuals" ]; then
+            echo "Syncing User Manuals..."
+            for file in docs/user-manuals/**/*.md; do
+              if [ -f "$file" ]; then
+                rel_path="${file#docs/user-manuals/}"
+                target_file="${rel_path%.md}.mdx"
+                target_path="docs-repo/manuals/$target_file"
+
+                mkdir -p "$(dirname "$target_path")"
+                cp "$file" "$target_path"
+                echo "  Synced: $file -> $target_path"
+              fi
+            done
+          fi
+
+          # Sync API docs
+          if [ -d "docs/api-docs" ]; then
+            echo "Syncing API Documentation..."
+            for file in docs/api-docs/**/*.md; do
+              if [ -f "$file" ]; then
+                rel_path="${file#docs/api-docs/}"
+                target_file="${rel_path%.md}.mdx"
+                target_path="docs-repo/api-reference/$target_file"
+
+                mkdir -p "$(dirname "$target_path")"
+                cp "$file" "$target_path"
+                echo "  Synced: $file -> $target_path"
+              fi
+            done
+          fi
+
+      # 5. Commit and push changes
+      - name: Commit and push to docs repo
+        working-directory: docs-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No documentation changes to sync."
+            exit 0
+          fi
+
+          # Get the commit info from main repo
+          MAIN_REPO_COMMIT="${{ github.sha }}"
+          MAIN_REPO_MSG="${{ github.event.head_commit.message }}"
+
+          # Commit changes
+          git add -A
+          git commit -m "Sync documentation from main repo
+
+Triggered by: $MAIN_REPO_COMMIT
+Original message: $MAIN_REPO_MSG
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+          # Push to docs repo
+          git push origin HEAD:main
+
+          echo "Documentation synced successfully!"
+
+      # 6. Summary
+      - name: Sync Summary
+        run: |
+          echo "=========================================="
+          echo "Documentation Sync Complete"
+          echo "=========================================="
+          echo "Source: ${{ github.repository }}"
+          echo "Target: ${{ secrets.DOCS_REPO }}"
+          echo "Changed files:"
+          echo "${{ steps.changed-files.outputs.files }}"
+          echo "=========================================="

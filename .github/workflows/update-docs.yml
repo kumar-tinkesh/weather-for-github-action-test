@@ -1,0 +1,234 @@
+name: Update Documentation
+
+on:
+  push:
+    branches: [main, master]
+
+# Only one docs update runs at a time
+concurrency:
+  group: docs-update
+  cancel-in-progress: false
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      # 1. Get info about the merged commit
+      - name: Get commit details
+        id: commit-info
+        run: |
+          echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "message=${{ github.event.head_commit.message }}" >> "$GITHUB_OUTPUT"
+          echo "author=${{ github.event.head_commit.author.name }}" >> "$GITHUB_OUTPUT"
+
+      # 2. Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 3. Detect changed files
+      - name: Detect changed Python files
+        id: detect
+        run: |
+          # Get files changed in this push
+          if [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          else
+            CHANGED_FILES=$(git log --pretty=format: --name-only --diff-filter=A -1 | grep -v '^$' || true)
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Check if weather.py changed
+          if echo "$CHANGED_FILES" | grep -q "weather.py"; then
+            echo "weather_changed=true" >> "$GITHUB_OUTPUT"
+            echo "Weather CLI code changed - documentation update needed"
+          else
+            echo "weather_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Check if other docs changed
+          if echo "$CHANGED_FILES" | grep -q "docs/"; then
+            echo "docs_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Save changed files list
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGED_FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Exit if no code changes
+        if: steps.detect.outputs.weather_changed != 'true'
+        run: |
+          echo "No changes to weather.py - documentation update not needed."
+          exit 0
+
+      # 4. Create or reuse the documentation branch
+      - name: Create documentation branch
+        id: branch
+        run: |
+          BRANCH_NAME="documentation/auto-update-${{ github.run_number }}"
+          echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          # Check if branch exists
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q .; then
+            echo "Branch exists - reusing it"
+            git fetch origin "$BRANCH_NAME"
+            git checkout -b "$BRANCH_NAME" origin/"$BRANCH_NAME"
+          else
+            echo "Creating new branch: $BRANCH_NAME"
+            git checkout -b "$BRANCH_NAME"
+          fi
+
+      # 5. Build the prompt for Claude Code
+      - name: Build Claude Code prompt
+        id: prompt
+        run: |
+          cat <<'PROMPT' > /tmp/claude-prompt.txt
+          You are updating documentation for the Weather Checker CLI application.
+
+          ## Task
+
+          The weather.py file has been modified. Read the current code and:
+
+          1. Update the technical documentation at docs/technical/weather-cli.md:
+             - Read the existing doc (if it exists)
+             - Identify what changed in weather.py
+             - Update affected sections with verbatim code from weather.py
+             - Update "Last Updated" timestamp
+             - Create the file if it doesn't exist
+
+          2. Update the Knowledge Base at docs/knowledge-base/weather-cli.md:
+             - Re-derive from the updated technical doc
+             - Remove all technical content (no code, no file paths)
+             - Update FAQ if behavior changed
+             - Update "Last Updated" timestamp
+             - Create the file if it doesn't exist
+
+          3. Update the User Manual at docs/user-manuals/weather-cli.md:
+             - Update if command syntax or output changed
+             - Update if error messages changed
+             - Update "Last Updated" timestamp
+             - Create the file if it doesn't exist
+
+          4. Update docs/README.md to reflect documentation status
+
+          ## Quality Standards
+
+          - Verbatim code only — never simplify
+          - Zero technical content in KB and manual
+          - Actual working command examples
+          - Timestamps in ISO 8601 format
+
+          ## Rules
+
+          - Only modify files in docs/ directory
+          - Create parent directories if needed
+          - Follow templates in .claude/prompts/templates/
+          PROMPT
+
+          echo "prompt<<EOF" >> "$GITHUB_OUTPUT"
+          cat /tmp/claude-prompt.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      # 6. Install and run Claude Code
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run Claude Code
+        id: claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set +e
+          OUTPUT=$(claude -p "${{ steps.prompt.outputs.prompt }}" \
+            --dangerously-skip-permissions \
+            --allowedTools "Read,Glob,Grep,Edit,Write,Bash(git diff*),Bash(mkdir*)" 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          if echo "$OUTPUT" | grep -q "API usage limits\|invalid_request_error\|API Error: 4"; then
+            echo "::warning::Claude Code API limit reached - skipping doc generation."
+            echo "api_limited=true" >> "$GITHUB_OUTPUT"
+          elif [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Claude Code exited with code $EXIT_CODE - continuing."
+            echo "Error: $OUTPUT"
+            echo "api_limited=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$OUTPUT"
+            echo "api_limited=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 7. Commit and push
+      - name: Commit documentation changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add all doc changes
+          git add docs/ 2>/dev/null || true
+
+          # Check if there are changes
+          if git diff --cached --quiet; then
+            echo "No documentation changes to commit."
+            echo "no_changes=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          # Commit
+          git commit -m "docs: update documentation for weather CLI changes
+
+Triggered by: ${{ steps.commit-info.outputs.message }}
+Commit: ${{ steps.commit-info.outputs.sha }}
+Author: ${{ steps.commit-info.outputs.author }}
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+          # Push
+          git push origin "${{ steps.branch.outputs.branch }}"
+
+      # 8. Create documentation PR
+      - name: Create documentation PR
+        if: env.no_changes != 'true' && steps.claude.outputs.api_limited != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${{ steps.branch.outputs.branch }}"
+
+          # Check if PR already exists
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already exists - skipping creation"
+            exit 0
+          fi
+
+          # Create PR
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "docs: update documentation for weather CLI" \
+            --body "## Documentation Update
+
+Automatically generated documentation update based on code changes in weather.py.
+
+### Changes Made
+- Updated technical documentation
+- Updated knowledge base
+- Updated user manual
+
+### Triggered by
+Commit: ${{ steps.commit-info.outputs.sha }}
+Message: ${{ steps.commit-info.outputs.message }}
+
+---
+Generated with [Claude Code](https://claude.com/claude-code)"
