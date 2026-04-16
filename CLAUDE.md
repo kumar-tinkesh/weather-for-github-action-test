@@ -116,6 +116,18 @@ Customer-facing documentation hosted on Mintlify.
 Code PR merge → Doc PR created → Doc PR merge → Sync to Mintlify → Mintlify deploys
 ```
 
+### CI/CD Workflows
+
+- **Feature and Test** (`.github/workflows/feature-and-test.yml`) - Runs on PRs and pushes to main/feature branches:
+  - Lint and format check (Black, isort, flake8)
+  - CLI functionality tests
+  - Python compatibility tests (3.8-3.12)
+  - PR validation with conventional commit format checking
+
+- **Doc Generation** (`.github/workflows/update-docs.yml`) - Runs on push to main when `weather.py` changes
+
+- **Sync to Mintlify** (`.github/workflows/sync-to-mintlify.yml`) - Syncs customer-facing docs to the docs repo
+
 ## Development Commands
 
 ### Linting and Formatting
