@@ -170,6 +170,10 @@ jobs:
 
       # 7. Commit and push
       - name: Commit documentation changes
+        env:
+          COMMIT_MSG: ${{ steps.commit-info.outputs.message }}
+          COMMIT_SHA: ${{ steps.commit-info.outputs.sha }}
+          COMMIT_AUTHOR: ${{ steps.commit-info.outputs.author }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -184,14 +188,17 @@ jobs:
             exit 0
           fi
 
-          # Commit
-          git commit -m "docs: update documentation for weather CLI changes
+          # Commit using heredoc to avoid multiline string issues
+          cat > /tmp/commit_msg.txt << 'COMMITMSG'
+          docs: update documentation for weather CLI changes
 
-Triggered by: ${{ steps.commit-info.outputs.message }}
-Commit: ${{ steps.commit-info.outputs.sha }}
-Author: ${{ steps.commit-info.outputs.author }}
+          Triggered by: $COMMIT_MSG
+          Commit: $COMMIT_SHA
+          Author: $COMMIT_AUTHOR
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+          Co-Authored-By: Claude <noreply@anthropic.com>
+          COMMITMSG
+          git commit -F /tmp/commit_msg.txt
 
           # Push
           git push origin "${{ steps.branch.outputs.branch }}"
