@@ -117,6 +117,9 @@ jobs:
       # 5. Commit and push changes
       - name: Commit and push to docs repo
         working-directory: docs-repo
+        env:
+          MAIN_REPO_COMMIT: ${{ github.sha }}
+          MAIN_REPO_MSG: ${{ github.event.head_commit.message }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -127,18 +130,17 @@ jobs:
             exit 0
           fi
 
-          # Get the commit info from main repo
-          MAIN_REPO_COMMIT="${{ github.sha }}"
-          MAIN_REPO_MSG="${{ github.event.head_commit.message }}"
-
           # Commit changes
           git add -A
-          git commit -m "Sync documentation from main repo
+          cat > /tmp/commit_msg.txt << 'COMMITMSG'
+          Sync documentation from main repo
 
-Triggered by: $MAIN_REPO_COMMIT
-Original message: $MAIN_REPO_MSG
+          Triggered by: $MAIN_REPO_COMMIT
+          Original message: $MAIN_REPO_MSG
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+          Co-Authored-By: Claude <noreply@anthropic.com>
+          COMMITMSG
+          git commit -F /tmp/commit_msg.txt
 
           # Push to docs repo
           git push origin HEAD:main
