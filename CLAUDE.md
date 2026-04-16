@@ -12,10 +12,15 @@ A simple Python CLI tool that fetches weather information using free APIs (no AP
 # Check weather for a city
 python weather.py <city-name>
 
+# Specify temperature unit (c=Celsius, f=Fahrenheit, b=both)
+python weather.py <city-name> -u f
+python weather.py <city-name> --unit b
+
 # Examples
 python weather.py London
 python weather.py "New York"
 python weather.py Tokyo
+python weather.py Tokyo -u f
 ```
 
 ## Architecture
@@ -111,6 +116,35 @@ Customer-facing documentation hosted on Mintlify.
 Code PR merge → Doc PR created → Doc PR merge → Sync to Mintlify → Mintlify deploys
 ```
 
+## Development Commands
+
+### Linting and Formatting
+
+```bash
+# Format code with Black
+black weather.py
+
+# Sort imports with isort
+isort weather.py
+
+# Lint with flake8
+flake8 weather.py --count --select=E9,F63,F7,F82 --show-source --statistics
+flake8 weather.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+```
+
+### Testing
+
+```bash
+# Verify Python syntax
+python -m py_compile weather.py
+
+# Test CLI help
+python weather.py --help
+
+# Test weather fetch (requires internet)
+python weather.py London
+```
+
 ## Key Implementation Details
 
 - Python 3.7+ required
@@ -118,6 +152,7 @@ Code PR merge → Doc PR created → Doc PR merge → Sync to Mintlify → Mintl
 - Open-Meteo uses WMO weather codes (0-99) mapped to human-readable descriptions
 - 10-second timeout on HTTP requests
 - User-Agent header required for wttr.in API requests
+- Version flag: `python weather.py --version` (outputs 1.1.0)
 
 ## Documentation Templates
 
