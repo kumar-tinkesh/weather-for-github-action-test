@@ -2,6 +2,7 @@
 """Simple weather checker using wttr.in and Open-Meteo APIs."""
 
 import sys
+import argparse
 import urllib.request
 import urllib.parse
 import json
@@ -44,7 +45,7 @@ def get_weather_openmeteo(lat, lon, location_name):
         return None
 
 
-def format_weather_wttr(data, location):
+def format_weather_wttr(data, location, unit='c'):
     """Format wttr.in weather data for display."""
     if not data:
         return "Could not fetch weather data."
@@ -59,7 +60,14 @@ def format_weather_wttr(data, location):
     output = []
     output.append(f"\n🌍 Weather for: {location}")
     output.append("-" * 40)
-    output.append(f"🌡️  Temperature: {temp_c}°C / {temp_f}°F")
+
+    if unit == 'f':
+        output.append(f"🌡️  Temperature: {temp_f}°F")
+    elif unit == 'b':
+        output.append(f"🌡️  Temperature: {temp_c}°C / {temp_f}°F")
+    else:
+        output.append(f"🌡️  Temperature: {temp_c}°C")
+
     output.append(f"☁️  Condition: {weather_desc}")
     output.append(f"💧 Humidity: {humidity}%")
     output.append(f"💨 Wind: {wind_kmph} km/h")
@@ -69,15 +77,21 @@ def format_weather_wttr(data, location):
     output.append("\n📅 3-Day Forecast:")
     for day in data["weather"][:3]:
         date = day["date"]
-        max_temp = day["maxtempC"]
-        min_temp = day["mintempC"]
+        if unit == 'f':
+            max_temp = day["maxtempF"]
+            min_temp = day["mintempF"]
+            unit_label = "°F"
+        else:
+            max_temp = day["maxtempC"]
+            min_temp = day["mintempC"]
+            unit_label = "°C"
         desc = day["hourly"][4]["weatherDesc"][0]["value"]
-        output.append(f"  {date}: {min_temp}°C - {max_temp}°C, {desc}")
+        output.append(f"  {date}: {min_temp}{unit_label} - {max_temp}{unit_label}, {desc}")
 
     return "\n".join(output)
 
 
-def format_weather_openmeteo(data):
+def format_weather_openmeteo(data, unit='c'):
     """Format Open-Meteo weather data for display."""
     if not data:
         return "Could not fetch weather data."
@@ -104,10 +118,20 @@ def format_weather_openmeteo(data):
     humidity = current["relative_humidity_2m"]
     wind = current["wind_speed_10m"]
 
+    # Convert to Fahrenheit if needed
+    if unit == 'f':
+        temp = temp * 9/5 + 32
+        unit_label = "°F"
+    elif unit == 'b':
+        temp_f = temp * 9/5 + 32
+        unit_label = f"°C / {temp_f:.1f}°F"
+    else:
+        unit_label = "°C"
+
     output = []
     output.append(f"\n🌍 Weather for: {location}")
     output.append("-" * 40)
-    output.append(f"🌡️  Temperature: {temp}°C")
+    output.append(f"🌡️  Temperature: {temp}{unit_label}")
     output.append(f"☁️  Condition: {weather_desc}")
     output.append(f"💧 Humidity: {humidity}%")
     output.append(f"💨 Wind: {wind} km/h")
@@ -123,27 +147,58 @@ def format_weather_openmeteo(data):
 
         for i, date in enumerate(dates[:3]):
             if i < len(max_temps) and i < len(min_temps):
-                output.append(f"  {date}: {min_temps[i]}°C - {max_temps[i]}°C")
+                if unit == 'f':
+                    max_temp = max_temps[i] * 9/5 + 32
+                    min_temp = min_temps[i] * 9/5 + 32
+                    output.append(f"  {date}: {min_temp:.1f}°F - {max_temp:.1f}°F")
+                else:
+                    output.append(f"  {date}: {min_temps[i]}°C - {max_temps[i]}°C")
 
     return "\n".join(output)
 
 
 def main():
-    if len(sys.argv) < 2:
-        location = input("Enter location (city name): ").strip()
-        if not location:
-            print("Please provide a location.")
-            print("Usage: python weather.py <location>")
-            sys.exit(1)
-    else:
-        location = " ".join(sys.argv[1:])
+    parser = argparse.ArgumentParser(
+        description='Get weather information for a location.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  python weather.py London
+  python weather.py "New York"
+  python weather.py Tokyo -u f
+  python weather.py Paris --unit c
+        '''
+    )
+    parser.add_argument(
+        'location',
+        nargs='?',
+        help='City name (e.g., London, "New York", Tokyo)'
+    )
+    parser.add_argument(
+        '-u', '--unit',
+        choices=['c', 'f', 'b'],
+        default='c',
+        help='Temperature unit: c=Celsius, f=Fahrenheit, b=both (default: c)'
+    )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 1.1.0'
+    )
 
-    print(f"\nFetching weather for '{location}'...")
+    args = parser.parse_args()
+
+    if not args.location:
+        args.location = input("Enter location (city name): ").strip()
+        if not args.location:
+            parser.error("Please provide a location.")
+
+    print(f"\nFetching weather for '{args.location}'...")
 
     # Try wttr.in first
-    data = get_weather_wttr(location)
+    data = get_weather_wttr(args.location)
     if data:
-        print(format_weather_wttr(data, location))
+        print(format_weather_wttr(data, args.location, args.unit))
     else:
         print("Failed to fetch weather data. Please check your internet connection.")
 
