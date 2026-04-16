@@ -23,7 +23,12 @@ jobs:
         id: commit-info
         run: |
           echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          echo "message=${{ github.event.head_commit.message }}" >> "$GITHUB_OUTPUT"
+
+          # Handle multiline commit message
+          echo 'message<<EOF' >> "$GITHUB_OUTPUT"
+          echo '${{ github.event.head_commit.message }}' >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
+
           echo "author=${{ github.event.head_commit.author.name }}" >> "$GITHUB_OUTPUT"
 
       # 2. Checkout the repo
@@ -222,4 +227,27 @@ jobs:
           fi
 
           # Create PR body file
-          cat > /tmp/pr_body.txt <> /dev/null
+          cat > /tmp/pr_body.txt << PRBODY
+          ## Documentation Update
+
+          Automatically generated documentation update based on code changes in weather.py.
+
+          ### Changes Made
+          - Updated technical documentation
+          - Updated knowledge base
+          - Updated user manual
+
+          ### Triggered by
+          Commit: $COMMIT_SHA
+          Message: $COMMIT_MSG
+
+          ---
+          Generated with [Claude Code](https://claude.com/claude-code)
+          PRBODY
+
+          # Create PR
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "docs: update documentation for weather CLI" \
+            --body-file /tmp/pr_body.txt
