@@ -150,11 +150,7 @@ jobs:
           echo "Checking for potential breaking changes..."
 
           # Test that the script still accepts command-line arguments
-          python -c "
-import sys
-sys.argv = ['weather.py', 'Test']
-exec(open('weather.py').read())
-" || echo "Warning: Potential issue with CLI arguments"
+          python3 weather.py --help 2>/dev/null || python3 -c "import weather" || echo "Warning: Potential issue with CLI arguments"
 
       - name: Comment PR
         if: github.event_name == 'pull_request'
