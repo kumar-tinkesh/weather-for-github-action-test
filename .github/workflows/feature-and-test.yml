@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master]
 
+# Default permissions for the workflow
+permissions:
+  contents: read
+
 jobs:
   lint-and-format:
     name: Lint and Format Check
@@ -109,6 +113,10 @@ jobs:
     name: Feature Validation
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
 
     steps:
       - name: Checkout repository
@@ -155,7 +163,10 @@ jobs:
       - name: Comment PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        env:
+          WEATHER_CHANGED: ${{ env.weather_changed }}
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -167,13 +178,18 @@ jobs:
               return comment.user.type === 'Bot' && comment.body.includes('Feature Validation Results');
             });
 
+            const weatherChanged = process.env.WEATHER_CHANGED || 'false';
+            const changeWarning = weatherChanged === 'true'
+              ? '⚠️ weather.py was modified - documentation may need updating'
+              : 'No code changes detected';
+
             const output = `### Feature Validation Results
 
             ✅ Lint and Format Check
             ✅ CLI Functionality Tests
             ✅ Python Compatibility (3.8-3.12)
 
-            ${{ env.weather_changed == 'true' && '⚠️ weather.py was modified - documentation may need updating' || 'No code changes detected' }}
+            ${changeWarning}
 
             ---
             *Automated validation complete*`;
