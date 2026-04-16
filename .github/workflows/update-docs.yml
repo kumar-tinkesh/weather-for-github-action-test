@@ -208,6 +208,8 @@ jobs:
         if: env.no_changes != 'true' && steps.claude.outputs.api_limited != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ steps.commit-info.outputs.sha }}
+          COMMIT_MSG: ${{ steps.commit-info.outputs.message }}
         run: |
           BRANCH="${{ steps.branch.outputs.branch }}"
 
@@ -219,23 +221,5 @@ jobs:
             exit 0
           fi
 
-          # Create PR
-          gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "docs: update documentation for weather CLI" \
-            --body "## Documentation Update
-
-Automatically generated documentation update based on code changes in weather.py.
-
-### Changes Made
-- Updated technical documentation
-- Updated knowledge base
-- Updated user manual
-
-### Triggered by
-Commit: ${{ steps.commit-info.outputs.sha }}
-Message: ${{ steps.commit-info.outputs.message }}
-
----
-Generated with [Claude Code](https://claude.com/claude-code)"
+          # Create PR body file
+          cat > /tmp/pr_body.txt <> /dev/null
